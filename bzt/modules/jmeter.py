@@ -287,7 +287,7 @@ class JMeterExecutor(ScenarioExecutor, WidgetProvider, FileLister, HavingInstall
             props_local.merge({"remote_hosts": ",".join(self.distributed_servers)})
         props_local.update({"jmeterengine.nongui.port": self.management_port})
         props_local.update({"jmeterengine.nongui.maxport": self.management_port})
-        props_local.update({"jmeter.save.saveservice.timestamp_format": "ms"})
+        props_local.update({"jmeter.save.saveservice.timestamp_format": "yyyy/MM/dd'T'HH:mm:ss.SSS"})
         props_local.update({"sampleresult.default.encoding": "UTF-8"})
         props.merge(props_local)
 
