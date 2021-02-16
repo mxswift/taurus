@@ -25,8 +25,6 @@ import socket
 import tempfile
 import time
 import traceback
-import calendar
-import time 
 from collections import Counter, namedtuple
 from distutils.version import LooseVersion
 from itertools import dropwhile
@@ -289,7 +287,7 @@ class JMeterExecutor(ScenarioExecutor, WidgetProvider, FileLister, HavingInstall
             props_local.merge({"remote_hosts": ",".join(self.distributed_servers)})
         props_local.update({"jmeterengine.nongui.port": self.management_port})
         props_local.update({"jmeterengine.nongui.maxport": self.management_port})
-        props_local.update({"jmeter.save.saveservice.timestamp_format": "yyyy/MM/dd'T'HH:mm:ss.SSS"})
+        props_local.update({"jmeter.save.saveservice.timestamp_format": "ms"})
         props_local.update({"sampleresult.default.encoding": "UTF-8"})
         props.merge(props_local)
 
@@ -872,7 +870,8 @@ class JTLReader(ResultsReader):
                 error = None
 
             byte_count = int(row.get("bytes", 0))
-            tstmp = int(int(calendar.timegm(time.strptime(row["timeStamp"], '%Y/%m/%d %H:%M:%S.%f'))) / 1000.0)
+
+            tstmp = int(int(row["timeStamp"]) / 1000.0)
             self.read_records += 1
             yield tstmp, label, concur, rtm, cnn, ltc, rcd, error, trname, byte_count
 
@@ -1039,7 +1038,7 @@ class FuncJTLReader(FunctionalResultsReader):
                 sample_extras[file_field] = artifact
 
     def _extract_sample(self, sample_elem):
-        tstmp = int(float(calendar.timegm(time.strptime(sample_elem.get("ts"), '%Y/%m/%d %H:%M:%S.%f'))) / 1000.0)
+        tstmp = int(float(sample_elem.get("ts")) / 1000.0)
         label = sample_elem.get("lb")
         duration = float(sample_elem.get("t")) / 1000.0
         success = sample_elem.get("s") == "true"
@@ -1275,7 +1274,7 @@ class JTLErrorsReader(object):
         KPISet.inc_list(buf.get('', [], force_set=True), ("msg", f_msg), err_item)
 
     def _extract_nonstandard(self, elem):
-        t_stamp = int(calendar.timegm(time.strptime(elem.findtext("timeStamp"), '%Y/%m/%d %H:%M:%S.%f'))) / 1000.0  # NOTE: will it be sometimes EndTime?
+        t_stamp = int(elem.findtext("timeStamp")) / 1000.0  # NOTE: will it be sometimes EndTime?
         label = elem.findtext("label")
         message = elem.findtext("responseMessage")
         r_code = elem.findtext("responseCode")
@@ -1333,7 +1332,7 @@ class XMLJTLReader(JTLErrorsReader, ResultsReader):
             yield self.items.pop(0)
 
     def _parse_element(self, elem):
-        tstmp = int(int(calendar.timegm(time.strptime(elem.get("ts"), '%Y/%m/%d %H:%M:%S.%f'))) / 1000.0)
+        tstmp = int(int(elem.get("ts")) / 1000.0)
         label = elem.get("lb")
         rtm = int(elem.get("t")) / 1000.0
         ltc = int(elem.get("lt")) / 1000.0 if "lt" in elem.attrib else 0
